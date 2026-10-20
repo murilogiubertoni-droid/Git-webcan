@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FaceID Local — Cadastro pela câmera</title>
+<style>
+:root{--bg:#0a1020;--panel:#121c31;--line:#2b3a59;--text:#eef3ff;--muted:#a6b4d1;--blue:#8ba7ff;--green:#49d6a0;--red:#ff8993}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1b2a4a,#0a1020 60%);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1100px;margin:auto;padding:30px 18px 55px}.brand{display:flex;align-items:center;gap:12px;margin-bottom:30px}.logo{width:44px;height:44px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(140deg,#8ba7ff,#745cff);font-size:25px;color:#091126}.muted{color:var(--muted)}h1{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:0 0 12px}h2{font-size:19px;margin:0 0 12px}.intro{max-width:760px;margin-bottom:25px}.layout{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.card{background:#121c31ed;border:1px solid var(--line);border-radius:20px;padding:20px;min-width:0}.videoWrap{position:relative;overflow:hidden;background:#050912;border-radius:15px;aspect-ratio:4/3;display:grid;place-items:center;margin:14px 0}.videoWrap video{display:block;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}.videoWrap canvas{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1);pointer-events:none}.camera-placeholder{position:absolute;text-align:center;color:var(--muted);padding:25px}.camera-placeholder span{font-size:42px;display:block}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:13px}.btn{border:0;border-radius:11px;padding:12px 15px;font-weight:700;font-size:14px;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--blue);color:#091126}.secondary{background:#253654;color:var(--text);border:1px solid #3a4c70}.danger{background:#402632;color:#ffdce0;border:1px solid #74404d}.status{padding:12px 14px;background:#0c1527;border:1px solid var(--line);border-radius:12px;color:var(--muted);margin-top:14px;white-space:pre-wrap}.person{display:flex;align-items:center;gap:12px;background:#0d172a;border:1px solid var(--line);border-radius:13px;padding:12px;margin-top:10px}.avatar{width:48px;height:48px;border-radius:12px;background:#253654;display:grid;place-items:center;font-size:20px;overflow:hidden;flex-shrink:0}.avatar img{width:100%;height:100%;object-fit:cover}.person-info{flex:1;min-width:0}.person-info strong{display:block;overflow-wrap:anywhere}.small{font-size:12px;color:var(--muted)}.person button{border:0;border-radius:8px;padding:8px 10px;background:#402632;color:#ffdce0;cursor:pointer}.field{width:100%;padding:12px 13px;background:#0b1426;border:1px solid #344565;border-radius:10px;color:var(--text);font:inherit;margin:8px 0 10px}.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 8px;border-radius:99px;background:#263654;color:#dce6ff}.result{display:none;margin-top:14px;padding:16px;border-radius:14px;background:#0c1928;border:1px solid #285c50}.result strong{color:var(--green);font-size:20px}.foot{margin-top:22px;color:#8796b4;font-size:12px}.hint{font-size:13px;color:var(--muted);margin:8px 0 0}hr{border:0;border-top:1px solid var(--line);margin:18px 0}.snapshot{width:100%;max-width:170px;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:none;margin-top:12px}@media(max-width:800px){.layout{grid-template-columns:1fr}main{padding:22px 13px 40px}}
+</style>
+</head>
+<body>
+<main>
+ <div class="brand"><div class="logo">◉</div><div><strong>FaceID Local</strong><div class="muted" style="font-size:13px">Reconhecimento facial no navegador</div></div></div>
+ <div class="intro"><span class="badge">DEMO EDUCACIONAL</span><h1>Cadastre e reconheça<br>rostos pela câmera</h1><p class="muted">Cadastre uma pessoa capturando o rosto pela webcam. Depois, o site tenta reconhecê-la ao vivo.</p></div>
+ <div class="layout">
+  <section class="card">
+   <h2><span style="color:var(--blue)">01</span> Câmera</h2>
+   <div class="videoWrap" id="videoWrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas><div class="camera-placeholder" id="camPlaceholder"><span>📷</span>Inicie a câmera para começar</div></div>
+   <div class="actions"><button class="btn primary" id="start">Iniciar câmera</button><button class="btn secondary" id="stop" disabled>Parar câmera</button></div>
+   <div class="status" id="status" role="status">Carregando modelos faciais… A primeira abertura precisa de internet.</div>
+   <div class="result" id="result"><div class="small">PESSOA RECONHECIDA</div><strong id="recognizedName"></strong><div class="small" id="confidence"></div></div>
+   <p class="hint">Olhe para a câmera, fique de frente e use um ambiente bem iluminado.</p>
+  </section>
+  <section class="card">
+   <h2><span style="color:var(--blue)">02</span> Cadastrar pela câmera</h2>
+   <label for="personName" class="muted">Nome da pessoa</label>
+   <input id="personName" class="field" type="text" maxlength="70" placeholder="Ex.: Maria Silva">
+   <p class="hint">Com a câmera ligada, posicione uma pessoa de frente e clique no botão abaixo. O site vai capturar um quadro e cadastrar o rosto detectado.</p>
+   <div class="actions"><button class="btn primary" id="register" disabled>Capturar rosto e cadastrar</button></div>
+   <img id="snapshot" class="snapshot" alt="Prévia da captura para cadastro">
+   <hr>
+   <h2>Pessoas cadastradas <span class="badge" id="count">0</span></h2>
+   <div id="people"><div class="hint">Nenhuma pessoa cadastrada ainda.</div></div>
+   <div class="actions"><button class="btn danger" id="clearAll" disabled>Apagar todos os cadastros</button></div>
+  </section>
+ </div>
+ <p class="foot"><strong>Privacidade:</strong> o processamento e os cadastros ficam na memória do navegador durante esta sessão; o código não envia imagens a um servidor próprio. A biblioteca e os modelos são baixados de um CDN. Cadastre apenas pessoas que autorizaram o teste. Esta demonstração pode errar e não deve ser usada para controle de acesso ou decisões importantes.</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script>
+const MODEL_URL='https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+const video=document.getElementById('video'),canvas=document.getElementById('overlay');
+const statusEl=document.getElementById('status'),startBtn=document.getElementById('start'),stopBtn=document.getElementById('stop'),registerBtn=document.getElementById('register');
+const nameInput=document.getElementById('personName'),peopleEl=document.getElementById('people'),countEl=document.getElementById('count'),clearAllBtn=document.getElementById('clearAll');
+const resultEl=document.getElementById('result'),recognizedName=document.getElementById('recognizedName'),confidenceEl=document.getElementById('confidence'),snapshot=document.getElementById('snapshot');
+let modelsReady=false,stream=null,people=[],loopTimer=null,busy=false,lastName='',lastSeen=0;
+function status(msg){statusEl.textContent=msg}
+function refreshPeople(){
+ countEl.textContent=people.length;clearAllBtn.disabled=!people.length;
+ if(!people.length){peopleEl.innerHTML='<div class="hint">Nenhuma pessoa cadastrada ainda.</div>';return}
+ peopleEl.innerHTML='';
+ people.forEach((p,i)=>{
+  const item=document.createElement('div');item.className='person';
+  const avatar=document.createElement('div');avatar.className='avatar';
+  const img=document.createElement('img');img.src=p.preview;img.alt='';avatar.appendChild(img);
+  const info=document.createElement('div');info.className='person-info';
+  const strong=document.createElement('strong');strong.textContent=p.name;
+  const small=document.createElement('div');small.className='small';small.textContent='Capturado pela câmera';
+  info.append(strong,small);
+  const del=document.createElement('button');del.textContent='Remover';del.addEventListener('click',()=>{people.splice(i,1);refreshPeople();status('Cadastro removido.');resultEl.style.display='none'});
+  item.append(avatar,info,del);peopleEl.appendChild(item);
+ });
+}
+async function getDetections(input){
+ return await faceapi.detectAllFaces(input,new faceapi.TinyFaceDetectorOptions({inputSize:416,scoreThreshold:.4})).withFaceLandmarks().withFaceDescriptors();
+}
+async function loadModels(){
+ try{
+  if(!window.faceapi)throw new Error('A biblioteca não carregou. Verifique a internet.');
+  await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)]);
+  modelsReady=true;startBtn.disabled=false;registerBtn.disabled=false;status('Modelos carregados. Inicie a câmera para cadastrar e reconhecer rostos.');
+ }catch(e){status('Não foi possível carregar os modelos. Verifique a conexão e recarregue a página.\n'+e.message);startBtn.disabled=true}
+}
+startBtn.disabled=true;
+async function startCamera(){
+ if(!modelsReady)return;
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){status('Este navegador não oferece acesso à câmera. Use um navegador atualizado e abra em localhost ou HTTPS.');return}
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+  video.srcObject=stream;await video.play();document.getElementById('camPlaceholder').style.display='none';
+  startBtn.disabled=true;stopBtn.disabled=false;registerBtn.disabled=false;
+  status('Câmera ativa. Digite um nome e capture o rosto para cadastrar.');
+  loopTimer=setInterval(scanFrame,850);
+ }catch(e){status('Não foi possível acessar a câmera. Autorize a permissão no navegador e tente novamente.\n'+e.message)}
+}
+function stopCamera(){
+ if(loopTimer){clearInterval(loopTimer);loopTimer=null}
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+ video.srcObject=null;canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+ document.getElementById('camPlaceholder').style.display='block';startBtn.disabled=!modelsReady;stopBtn.disabled=true;registerBtn.disabled=!modelsReady;busy=false;resultEl.style.display='none';status('Câmera parada.');
+}
+registerBtn.addEventListener('click',async()=>{
+ const name=nameInput.value.trim();
+ if(!name){status('Digite o nome da pessoa antes de cadastrar.');return}
+ if(!stream||video.readyState<2){status('Inicie a câmera e espere a imagem aparecer primeiro.');return}
+ registerBtn.disabled=true;status('Capturando e analisando o rosto…');
+ try{
+  const capture=document.createElement('canvas');capture.width=video.videoWidth;capture.height=video.videoHeight;
+  capture.getContext('2d').drawImage(video,0,0,capture.width,capture.height);
+  const preview=capture.toDataURL('image/jpeg',.85);
+  const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Não foi possível processar a captura.'));img.src=preview});
+  const detections=await getDetections(img);
+  if(!detections.length)throw new Error('Não encontrei rosto. Olhe para a câmera, aproxime-se um pouco e tente novamente.');
+  if(detections.length>1)throw new Error('Encontrei mais de um rosto. Deixe apenas uma pessoa diante da câmera.');
+  people.push({name,descriptor:detections[0].descriptor,preview});
+  snapshot.src=preview;snapshot.style.display='block';nameInput.value='';refreshPeople();status('Rosto de '+name+' cadastrado com sucesso! Você pode testar o reconhecimento agora.');
+ }catch(e){status(e.message)}
+ finally{registerBtn.disabled=!modelsReady}
+});
+clearAllBtn.addEventListener('click',()=>{people=[];refreshPeople();resultEl.style.display='none';status('Todos os cadastros foram apagados.')});
+async function scanFrame(){
+ if(busy||!stream||video.readyState<2)return;busy=true;
+ try{
+  const dims={width:video.videoWidth,height:video.videoHeight};if(!dims.width||!dims.height)return;
+  faceapi.matchDimensions(canvas,dims);
+  const detections=await faceapi.detectAllFaces(video,new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.45})).withFaceLandmarks().withFaceDescriptors();
+  const resized=faceapi.resizeResults(detections,dims),ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
+  let found=null;
+  for(const d of resized){
+   let best=null,bestDistance=Infinity;
+   for(const p of people){const distance=faceapi.euclideanDistance(d.descriptor,p.descriptor);if(distance<bestDistance){bestDistance=distance;best=p}}
+   const matched=best&&bestDistance<.52,label=matched?best.name:'Desconhecido',box=d.detection.box;
+   ctx.strokeStyle=matched?'#49d6a0':'#ff8993';ctx.lineWidth=3;ctx.strokeRect(box.x,box.y,box.width,box.height);
+   ctx.font='bold 17px system-ui';const tw=ctx.measureText(label).width;ctx.fillStyle=matched?'#174d3d':'#6b2835';ctx.fillRect(box.x,Math.max(0,box.y-29),tw+18,27);ctx.fillStyle='#fff';ctx.fillText(label,box.x+9,Math.max(19,box.y-10));
+   if(matched)found={person:best,distance:bestDistance};
+  }
+  if(found){
+   const now=Date.now();
+   if(lastName!==found.person.name||now-lastSeen>3500){recognizedName.textContent=found.person.name;confidenceEl.textContent='Semelhança estimada: '+Math.max(0,Math.min(99,Math.round((1-found.distance)*100)))+'% • não é uma probabilidade real.';resultEl.style.display='block';lastName=found.person.name;lastSeen=now}
+   status('Rosto reconhecido como '+found.person.name+'. O modelo pode cometer erros.');
+  }else{resultEl.style.display='none';lastName='';status(detections.length?'Rosto detectado, mas não corresponde aos cadastros.':'Câmera ativa. Nenhum rosto detectado neste momento.')}
+ }catch(e){status('Erro ao analisar a imagem: '+e.message)}finally{busy=false}
+}
+startBtn.addEventListener('click',startCamera);stopBtn.addEventListener('click',stopCamera);
+loadModels();refreshPeople();
+</script>
+</body></html>
